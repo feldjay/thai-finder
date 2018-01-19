@@ -1,0 +1,4 @@
+*.so
+*.swp
+__pycache__/
+restaurants.csv

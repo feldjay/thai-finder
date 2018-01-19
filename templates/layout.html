@@ -1,0 +1,15 @@
+<!doctype html>
+<title>Thai-Finder</title>
+<div class="page">
+  <label for="boros">Boro:</label>
+  <select name="boros">
+  {% for boro in boros %}
+  <option value="{{ boro }}"{% if loop.first %} SELECTED{% endif %}>{{ boro }}</option>
+  {% endfor %}
+</select>
+<ul>
+{% for restaurant in rest_names %}
+<h2>{{ restaurant|first }}</h2>
+{% endfor %}
+</ul>
+</div>
