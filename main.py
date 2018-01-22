@@ -29,7 +29,8 @@ def get_restaurants():
             data_dict[rest['BORO']].append(rest['DBA'])
         else:
             data_dict[rest['BORO']] = [rest['DBA']]
-    return render_template('layout.html', data=data_dict)
+    boros = list(data_dict.keys())
+    return render_template('layout.html', boros=boros, data=data_dict)
 
 
 if __name__ == "__main__":
