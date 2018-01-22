@@ -1,5 +1,5 @@
-from flask.ext.rq import get_worker
-from flask.ext.script import Manager
+from flask_rq import get_worker
+from flask_script import Manager
 
 from main import app
 
