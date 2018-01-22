@@ -1,8 +1,13 @@
 Flask==0.12.2
 Flask-SQLAlchemy==2.3.2
 gunicorn==19.7.1
+idna==2.6
+itsdangerous==0.24
 Jinja2==2.10
+numpy==1.14.0
 pandas==0.22.0
-pytz==2017.3
+psycopg2==2.7.3.2
+six==1.11.0
 SQLAlchemy==1.2.1
 Werkzeug==0.12.2
+Flask-Heroku-RQify>=0.1

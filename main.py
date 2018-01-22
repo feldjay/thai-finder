@@ -1,26 +1,32 @@
 import os
 from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
+from flask.ext.rqify import init_rqify
+from flask.ext.rq import job
 from sqlalchemy import create_engine
 import pandas as pd
 
 
 app = Flask(__name__)
+init_rqify(app)
 engine = create_engine(os.environ['DATABASE_URL'])
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 db = SQLAlchemy(app)
 
-url = 'https://nycopendata.socrata.com/api/views/xx67-kt59/rows.csv?accessType=DOWNLOAD'
-data = pd.read_csv(url)
-acceptable_grades = ['A', 'B']
-thai_restaurants = data.loc[data["CUISINE DESCRIPTION"] == 'Thai']
-df = thai_restaurants.loc[data["GRADE"].isin(acceptable_grades)]
-df.to_sql(con=engine, name='restaurant', if_exists='append')
+
+@job
+def process_csv():
+    url = 'https://nycopendata.socrata.com/api/views/xx67-kt59/rows.csv?accessType=DOWNLOAD'
+    data = pd.read_csv(url)
+    acceptable_grades = ['A', 'B']
+    thai_restaurants = data.loc[data["CUISINE DESCRIPTION"] == 'Thai']
+    df = thai_restaurants.loc[data["GRADE"].isin(acceptable_grades)]
+    df.to_sql(con=engine, name='restaurant', if_exists='append')
 
 
 @app.route("/")
 def get_restaurants():
-    rest_q = engine.execute('SELECT * FROM restaurant ORDER BY SCORE asc limit 10').fetchall()
+    rest_q = engine.execute("""SELECT * FROM restaurant ORDER BY "SCORE" asc limit 10""").fetchall()
     data_dict = {}
     for rest in rest_q:
         if rest['BORO'] in data_dict:
