@@ -6,7 +6,7 @@ import pandas as pd
 
 
 app = Flask(__name__)
-engine = create_engine('sqlite:///foo.db')
+engine = create_engine(os.environ['DATABASE_URL'])
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 db = SQLAlchemy(app)
 
