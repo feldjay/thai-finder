@@ -1,5 +1,4 @@
 import os
-#import datetime
 
 from flask import Flask, render_template
 
@@ -19,6 +18,7 @@ metadata = MetaData()
 
 restaurant = Table('restaurant', metadata,
     Column('id', Integer, primary_key=True),
+    Column('external_id', Integer),
     Column('name', String(100)),
     Column('boro', String(100)),
     Column('address', String(100)),
@@ -28,7 +28,7 @@ restaurant = Table('restaurant', metadata,
 
 grade = Table('grade', metadata,
     Column('id', Integer, primary_key=True),
-    Column('restaurant_id', Integer, ForeignKey('restaurant.id'), nullable=False),
+    Column('restaurant_id', Integer, ForeignKey('restaurant.external_id'), nullable=False),
     Column('score', Integer),
     Column('date', Date),
     Column('grade', String(1))
@@ -46,23 +46,24 @@ def process_csv():
     df = thai_restaurants.loc[data["GRADE"].isin(acceptable_grades)]
     df['address'] = df['BUILDING'] + df['STREET']
     df2 = df[df.columns.difference(['CUISINE DESCRIPTION', 'BUILDING', 'STREET', 'ACTION', 'VIOLATION CODE', 'VIOLATION DESCRIPTION', 'CRITICAL FLAG', 'SCORE', 'GRADE', 'INSPECTION DATE', 'GRADE DATE', 'RECORD DATE', 'INSPECTION TYPE'])]
-    df2 = df2.rename(columns={'CAMIS':'id', 'DBA': 'name', 'BORO':'boro', 'PHONE':'phone', 'ZIPCODE': 'zipcode'})
-    df2['id'] = df2['id'].unique()
-    df2.to_sql(con=engine, name='restaurant', if_exists='append', index=False)
-    df3 = df[df.columns.difference(['address', 'DBA', 'BORO', 'BUILDING', 'STREET', 'ZIPCODE', 'PHONE', 'CUISINE DESCRIPTION', 'CRITICAL FLAG', 'INSPECTION DATE', 'RECORD DATE', 'INSPECTION TYPE'])]
+    df2 = df2.rename(columns={'CAMIS':'external_id', 'DBA': 'name', 'BORO':'boro', 'PHONE':'phone', 'ZIPCODE': 'zipcode'})
+    df2.groupby('external_id').first().to_sql(con=engine, name='restaurant', if_exists='append')
+    df3 = df[df.columns.difference(['address', 'DBA', 'BORO', 'BUILDING', 'STREET', 'ZIPCODE', 'PHONE', 'CUISINE DESCRIPTION', 'CRITICAL FLAG', 'INSPECTION DATE', 'RECORD DATE', 'INSPECTION TYPE', 'ACTION', 'VIOLATION CODE', 'VIOLATION DESCRIPTION'])]
     df3 = df3.rename(columns={'CAMIS': 'restaurant_id', 'SCORE': 'score', 'GRADE DATE': 'date', 'GRADE': 'grade'})
-    df3.to_sql(con=engine, name='grade', if_exists='append', dtype={'date': Date})
+    df3['date'] = pd.to_datetime(df3['date'])
+    df3.groupby(['restaurant_id', 'date']).first().to_sql(con=engine, name='grade', if_exists='append', dtype={'date': Date})
 
 
 @app.route("/")
 def get_restaurants():
-    rest_qs = engine.execute("""SELECT * FROM restaurant ORDER BY "SCORE" asc limit 10""").fetchall()
+    rest_qs = engine.execute("select * from grade, restaurant where grade.restaurant_id = restaurant.external_id  order by date desc, score asc limit 10").fetchall()
+    
     data_dict = {}
     for rest in rest_qs:
-        if rest['BORO'] in data_dict:
-            data_dict[rest['BORO']].append(rest['DBA'])
+        if rest[8] in data_dict:
+            data_dict[rest[8]].append(rest[7])
         else:
-            data_dict[rest['BORO']] = [rest['DBA']]
+            data_dict[rest[8]] = [rest[7]]
     return render_template('layout.html', data=data_dict)
 
 
