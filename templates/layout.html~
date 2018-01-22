@@ -1,0 +1,38 @@
+<!doctype html>
+<title>Thai-Finder</title>
+<head>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+</head>
+<body>
+<div class="page">
+  <label for="boros">Boro: </label>
+  <select id="boros">
+  {% for boros, names in data.items() %}
+  {% for boro in boros %}
+  <option value="{{ boro }}">{{ boro }}</option>
+  {% endfor %}
+</select>
+<ul id="name">
+  {% for name in names %}
+<li>{{ name }}</li>
+  {% endfor %}
+{% endfor %}
+</ul>
+</div>
+<script>
+
+  var data = $.parseJSON('{{ data|tojson|safe }}');
+  var getData = function() {
+      var filterVal = $('#filter').val();
+      return data[filterVal]
+  };
+
+  $(document).ready(function(){
+    $("#name").html(getData());
+    $('#filter').change(function (e) {
+        $('#name').html(getData());
+      });
+  });
+</script>
+</body>
+</html>
