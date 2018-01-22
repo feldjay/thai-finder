@@ -18,7 +18,7 @@ metadata = MetaData()
 
 restaurant = Table('restaurant', metadata,
     Column('id', Integer, primary_key=True),
-    Column('external_id', Integer),
+    Column('external_id', Integer, unique=True),
     Column('name', String(100)),
     Column('boro', String(100)),
     Column('address', String(100)),
