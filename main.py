@@ -45,13 +45,63 @@ def process_csv():
     thai_restaurants = data.loc[data["CUISINE DESCRIPTION"] == 'Thai']
     df = thai_restaurants.loc[data["GRADE"].isin(acceptable_grades)]
     df['address'] = df['BUILDING'] + df['STREET']
-    df2 = df[df.columns.difference(['CUISINE DESCRIPTION', 'BUILDING', 'STREET', 'ACTION', 'VIOLATION CODE', 'VIOLATION DESCRIPTION', 'CRITICAL FLAG', 'SCORE', 'GRADE', 'INSPECTION DATE', 'GRADE DATE', 'RECORD DATE', 'INSPECTION TYPE'])]
-    df2 = df2.rename(columns={'CAMIS':'external_id', 'DBA': 'name', 'BORO':'boro', 'PHONE':'phone', 'ZIPCODE': 'zipcode'})
-    df2.groupby('external_id').first().to_sql(con=engine, name='restaurant', if_exists='append')
-    df3 = df[df.columns.difference(['address', 'DBA', 'BORO', 'BUILDING', 'STREET', 'ZIPCODE', 'PHONE', 'CUISINE DESCRIPTION', 'CRITICAL FLAG', 'INSPECTION DATE', 'RECORD DATE', 'INSPECTION TYPE', 'ACTION', 'VIOLATION CODE', 'VIOLATION DESCRIPTION'])]
-    df3 = df3.rename(columns={'CAMIS': 'restaurant_id', 'SCORE': 'score', 'GRADE DATE': 'date', 'GRADE': 'grade'})
+    df2 = df[df.columns.difference([
+                'CUISINE DESCRIPTION',
+                'BUILDING',
+                'STREET',
+                'ACTION',
+                'VIOLATION CODE',
+                'VIOLATION DESCRIPTION',
+                'CRITICAL FLAG',
+                'SCORE',
+                'GRADE',
+                'INSPECTION DATE',
+                'GRADE DATE',
+                'RECORD DATE',
+                'INSPECTION TYPE'
+            ])]
+    df2 = df2.rename(columns={
+                'CAMIS': 'external_id',
+                'DBA': 'name',
+                'BORO': 'boro',
+                'PHONE': 'phone',
+                'ZIPCODE': 'zipcode'
+            })
+    df2.groupby('external_id').first().to_sql(
+                con=engine,
+                name='restaurant',
+                if_exists='append'
+            )
+    df3 = df[df.columns.difference([
+                    'address',
+                    'DBA',
+                    'BORO',
+                    'BUILDING',
+                    'STREET',
+                    'ZIPCODE',
+                    'PHONE',
+                    'CUISINE DESCRIPTION',
+                    'CRITICAL FLAG',
+                    'INSPECTION DATE',
+                    'RECORD DATE',
+                    'INSPECTION TYPE',
+                    'ACTION',
+                    'VIOLATION CODE',
+                    'VIOLATION DESCRIPTION'
+                ])]
+    df3 = df3.rename(columns={
+                'CAMIS': 'restaurant_id',
+                'SCORE': 'score',
+                'GRADE DATE': 'date',
+                'GRADE': 'grade'
+            })
     df3['date'] = pd.to_datetime(df3['date'])
-    df3.groupby(['restaurant_id', 'date']).first().to_sql(con=engine, name='grade', if_exists='append', dtype={'date': Date})
+    df3.groupby(['restaurant_id', 'date']).first().to_sql(
+                    con=engine,
+                    name='grade',
+                    if_exists='append',
+                    dtype={'date': Date}
+                )
 
 
 @app.route("/")
